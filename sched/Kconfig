@@ -330,6 +330,35 @@ config RW_SPINLOCK
 
 endif # SPINLOCK
 
+
+config FRAP
+	bool "FRAP spin protocol for SMP global resources"
+	default n
+	depends on SMP && SPINLOCK
+	help
+	  Enable the FRAP protocol implementation:
+	  - Per-resource FIFO spin queues
+	  - Non-preemptive critical sections
+	  - Cancel-on-preempt while spinning (re-enqueue tail on resume)
+	  - Optional ceiling for local resources (PCP-lite)
+
+if FRAP
+
+config FRAP_MAX_TASKS
+	int "Max tasks tracked for FRAP extensions"
+	default 64
+	help
+	  Number of task extension slots used to store per-task FRAP state.
+
+config FRAP_TABLE_SIZE
+	int "Size of (task,res)->spin-priority table"
+	default 64
+	help
+	  Entries available for user-configured spin priority tuples.
+
+endif # FRAP
+
+
 config IRQCHAIN
 	bool "Enable multi handler sharing a IRQ"
 	default n

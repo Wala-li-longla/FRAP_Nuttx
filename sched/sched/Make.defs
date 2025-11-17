@@ -32,6 +32,12 @@ CSRCS += sched_idletask.c sched_self.c sched_get_stackinfo.c sched_get_tls.c
 CSRCS += sched_sysinfo.c sched_get_stateinfo.c sched_getcpu.c
 CSRCS += sched_switchcontext.c sched_sleep.c
 
+ifeq ($(CONFIG_FRAP),y)
+CSRCS += frap_core.c frap_queue.c frap_lock.c frap_schedhook.c frap_table.c
+VPATH += :frap
+DEPPATH += --dep-path frap
+endif
+
 ifneq ($(CONFIG_STACKCHECK_MARGIN),)
   ifneq ($(CONFIG_STACKCHECK_MARGIN),-1)
     CSRCS += nxsched_checkstackoverflow.c
