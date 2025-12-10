@@ -56,7 +56,7 @@ struct frap_waiter
 int  frap_res_init(FAR struct frap_res *r, uint32_t id, bool global);
 
 /* 获取/释放：spin_prio 由调用方提供（或用 frap_get_spin_prio 查询） */
-int  frap_lock(FAR struct frap_res *r, uint8_t spin_prio);
+int  frap_lock(FAR struct frap_res *r);
 void frap_unlock(FAR struct frap_res *r);
 
 /* （可选）本地资源PCP封装 */
@@ -65,7 +65,7 @@ void frap_local_unlock(FAR struct frap_res *r);
 
 /* (task,res)->P_i^k 表接口（简单表，无MCMF） */
 int  frap_set_spin_prio(pid_t pid, uint32_t resid, uint8_t spin_prio);
-int  frap_get_spin_prio(pid_t pid, uint32_t resid, uint8_t *out);
+int  frap_get_spin_prio(pid_t pid, uint32_t resid);
 
 /* 调度器抢占钩子（在上下文切换时由调度器调用） */
 void frap_on_preempt(FAR struct tcb_s *oldtcb, FAR struct tcb_s *newtcb);

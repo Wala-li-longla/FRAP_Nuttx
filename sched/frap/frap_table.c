@@ -42,17 +42,15 @@ int frap_set_spin_prio(pid_t pid, uint32_t resid, uint8_t spin_prio)
   return -ENOSPC;
 }
 
-int frap_get_spin_prio(pid_t pid, uint32_t resid, uint8_t *out)
+int frap_get_spin_prio(pid_t pid, uint32_t resid)
 {
-  if (!out) return -EINVAL;
   for (int i = 0; i < CONFIG_FRAP_TABLE_SIZE; i++)
+  {
+    if (g_tbl[i].inuse && g_tbl[i].pid == pid && g_tbl[i].resid == resid)
     {
-      if (g_tbl[i].inuse && g_tbl[i].pid == pid && g_tbl[i].resid == resid)
-        {
-          *out = g_tbl[i].spin_prio;
-          return OK;
-        }
+      return g_tbl[i].spin_prio;
     }
+  }
   return -ENOENT;
 }
 

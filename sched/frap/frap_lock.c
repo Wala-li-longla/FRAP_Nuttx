@@ -16,16 +16,29 @@
 
 /* === 全局资源：FRAP R1/R2/R3 === */
 
-int frap_lock(FAR struct frap_res *r, uint8_t spin_prio)
+int frap_lock(FAR struct frap_res *r)
 {
   FAR struct tcb_s *tcb = this_task();
   FAR struct frap_task_ext *ext = frap_get_ext(tcb);
   irqstate_t flags;
+  int effective_spin_prio;
 
   if (!r || !ext) return -EINVAL;
 
+  int sp = frap_get_spin_prio(tcb->pid, (int)r->id);
+  if (sp >= 0)
+  {
+    effective_spin_prio = sp;
+  }
+  else
+  {
+    /* lookup failed or not set; fallback */
+    sinfo("FRAP: frap_get_spin_prio failed(pid=%d,resid=%u), fallback to base prio\n",tcb->pid, (unsigned)r->id);
+    effective_spin_prio = (int)tcb->sched_priority;
+  }
+      
   /* R1: 自旋优先级必须满足 P_i <= P_i^k */
-  if (spin_prio < (uint8_t)tcb->sched_priority)
+  if ((uint8_t)effective_spin_prio < (uint8_t)tcb->sched_priority)
     {
       return -EINVAL;
     }
@@ -34,12 +47,12 @@ int frap_lock(FAR struct frap_res *r, uint8_t spin_prio)
   memset(&ext->waiter, 0, sizeof(ext->waiter));
   ext->waiter.tcb       = tcb;
   ext->waiter.base_prio = (uint8_t)tcb->sched_priority;
-  ext->waiter.spin_prio = spin_prio;
+  ext->waiter.spin_prio = (uint8_t)effective_spin_prio;
   ext->waiting_res      = r;
   ext->in_cs            = false;
 
   /* 提升为自旋优先级（R1） */
-  frap_set_prio(tcb, spin_prio);
+  frap_set_prio(tcb, (uint8_t)effective_spin_prio);
 
   for (;;)
     {
@@ -79,8 +92,6 @@ int frap_lock(FAR struct frap_res *r, uint8_t spin_prio)
                 tcb->pid, (unsigned)r->id,
                 (unsigned)ext->waiter.spin_prio,
                 (unsigned)ext->waiter.base_prio);
-    /* -------------------------------- */
-
           return OK;
         }
 
